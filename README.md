@@ -138,7 +138,6 @@ codeagent/
 │   ├── code/           # AI 提供商实现
 │   └── github/         # GitHub API 客户端
 ├── pkg/models/         # 数据模型
-├── scripts/           # 工具脚本
 └── config.yaml        # 配置文件
 ```
 

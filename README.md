@@ -48,21 +48,6 @@ export WEBHOOK_SECRET="your-webhook-secret"
 
 ### 3. Quick Launch
 
-Use the startup script for the fastest setup:
-
-```bash
-# Default: Gemini + Local CLI mode
-./scripts/start.sh
-
-# Claude + Docker mode
-./scripts/start.sh -p claude -d
-
-# View all options
-./scripts/start.sh --help
-```
-
-Or run directly:
-
 ```bash
 go run ./cmd/server --port 8888
 ```
@@ -123,10 +108,12 @@ gemini:
 
 ### Provider & Mode Combinations
 
+Configure your provider and mode through the configuration file:
+
 | Provider | Docker Mode | CLI Mode | Recommended For |
 |----------|-------------|----------|-----------------|
-| Claude | `-p claude -d` | `-p claude` | Production / Development |
-| Gemini | `-p gemini -d` | `-p gemini` | Development (default) |
+| Claude | `use_docker: true` | `use_docker: false` | Production / Development |
+| Gemini | `use_docker: true` | `use_docker: false` | Development (default) |
 
 ## 📝 Usage
 
@@ -168,7 +155,6 @@ codeagent/
 │   ├── github/client.go        # GitHub API integration
 │   └── config/config.go        # Configuration management
 ├── pkg/models/                 # Shared data structures
-├── scripts/start.sh            # Development startup script
 └── docs/                       # Documentation
 ```
 

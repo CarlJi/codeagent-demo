@@ -93,20 +93,6 @@ gemini:
 
 ## Development
 
-### Project Structure
-
-```
-codeagent/
-├── cmd/server/           # Main entry point
-├── internal/
-│   ├── agent/           # Core orchestration
-│   ├── webhook/         # GitHub webhook handling
-│   ├── workspace/       # Git workspace management
-│   ├── code/           # AI provider implementations
-│   └── github/         # GitHub API client
-├── pkg/models/         # Data structures
-└── scripts/           # Utility scripts
-```
 
 ### Build & Test
 

@@ -57,25 +57,6 @@ export WEBHOOK_SECRET="your-webhook-secret"
 
 ### 运行
 
-推荐使用启动脚本：
-
-```bash
-# Gemini + 本地CLI模式（默认，开发推荐）
-./scripts/start.sh
-
-# Claude + Docker模式（生产推荐）
-./scripts/start.sh -p claude -d
-
-# 其他组合
-./scripts/start.sh -p gemini -d    # Gemini + Docker
-./scripts/start.sh -p claude       # Claude + 本地CLI
-
-# 查看帮助
-./scripts/start.sh --help
-```
-
-或直接运行：
-
 ```bash
 go run ./cmd/server --config config.yaml
 ```

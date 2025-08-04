@@ -58,45 +58,6 @@ Comment in GitHub Issues or PRs with:
 
 *One of the AI provider keys is required
 
-### Configuration File (config.yaml)
-
-```yaml
-server:
-  port: 8888
-
-code_provider: claude  # or gemini
-use_docker: false      # true for Docker, false for CLI
-
-workspace:
-  base_dir: "./codeagent"
-  cleanup_after: "24h"
-
-claude:
-  container_image: "anthropic/claude-code:latest"
-  timeout: "30m"
-
-gemini:
-  container_image: "google-gemini/gemini-cli:latest"
-  timeout: "30m"
-```
-
-## Development
-
-
-### Build & Test
-
-```bash
-# Build
-make build
-
-# Test
-make test
-curl http://localhost:8888/health
-
-# Debug
-export LOG_LEVEL=debug
-go run ./cmd/server
-```
 
 ## 🤝 Contributing
 

@@ -50,12 +50,6 @@ workspace:
 ### Start the Service
 
 ```bash
-# Using startup script (recommended)
-./scripts/start.sh                    # Gemini + CLI (default)
-./scripts/start.sh -p claude -d       # Claude + Docker
-./scripts/start.sh -p claude          # Claude + CLI
-
-# Or run directly
 go run ./cmd/server --config config.yaml
 ```
 
@@ -82,12 +76,12 @@ Trigger AI actions with comments in GitHub Issues or PRs:
 
 ### Configuration Options
 
-| Provider | Mode | Use Case | Command |
-|----------|------|----------|---------|
-| Claude | Docker | Production | `./scripts/start.sh -p claude -d` |
-| Claude | CLI | Development | `./scripts/start.sh -p claude` |
-| Gemini | Docker | Production | `./scripts/start.sh -p gemini -d` |
-| Gemini | CLI | Development | `./scripts/start.sh` |
+| Provider | Mode | Description |
+|----------|------|-------------|
+| Claude | Docker | Use Claude with Docker container |
+| Claude | CLI | Use Claude with local CLI |
+| Gemini | Docker | Use Gemini with Docker container |
+| Gemini | CLI | Use Gemini with local CLI |
 
 ### Environment Variables
 

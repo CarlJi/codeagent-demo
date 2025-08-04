@@ -29,11 +29,6 @@ export GITHUB_TOKEN="your-github-token"
 export CLAUDE_API_KEY="your-claude-api-key"  # or GOOGLE_API_KEY
 export WEBHOOK_SECRET="your-webhook-secret"
 
-# Start with default settings (Gemini + CLI mode)
-./scripts/start.sh
-
-# Or use specific configuration
-./scripts/start.sh -p claude -d  # Claude + Docker mode
 ```
 
 ### GitHub Webhook Configuration

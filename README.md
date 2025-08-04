@@ -30,18 +30,7 @@ CodeAgent is an AI-powered code agent that automatically processes GitHub Issues
    export WEBHOOK_SECRET="your-webhook-secret"
    ```
 
-3. **Run**
-   ```bash
-   # Quick start with script
-   ./scripts/start.sh                # Gemini + CLI (default)
-   ./scripts/start.sh -p claude      # Claude + CLI
-   ./scripts/start.sh -p claude -d   # Claude + Docker
-   
-   # Or run directly
-   go run ./cmd/server --port 8888
-   ```
-
-4. **Setup GitHub Webhook**
+3. **Setup GitHub Webhook**
    - URL: `https://your-domain.com/hook`
    - Events: `Issue comments`, `Pull request reviews`, `Pull requests`
    - Secret: Same as `WEBHOOK_SECRET`

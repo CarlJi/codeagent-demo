@@ -59,21 +59,6 @@ Comment in GitHub Issues or PRs with:
 *One of the AI provider keys is required
 
 
-## 🤝 Contributing
-
-We welcome all forms of contributions! Please check the [Contributing Guide](CONTRIBUTING.md) to learn how to participate in project development.
-
-### Ways to Contribute
-
-- 🐛 [Report Bugs](https://github.com/qiniu/codeagent/issues/new?template=bug_report.md)
-- 💡 [Feature Requests](https://github.com/qiniu/codeagent/issues/new?template=feature_request.md)
-- 📝 [Improve Documentation](https://github.com/qiniu/codeagent/issues/new?template=documentation.md)
-- 🔧 [Submit Code](CONTRIBUTING.md#code-contributions)
-
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](LICENSE).
-
-## 🙏 Acknowledgments
-
-Thank you to all developers and users who have contributed to this project!

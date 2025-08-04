@@ -66,8 +66,6 @@ curl http://localhost:8888/health
 
 ## ⚙️ Configuration
 
-### Environment Variables
-
 Required environment variables:
 
 | Variable | Description | Example |

@@ -31,13 +31,6 @@ export WEBHOOK_SECRET="your-webhook-secret"
 
 ```
 
-### GitHub Webhook Configuration
-
-1. Go to repository Settings → Webhooks → Add webhook
-2. Set URL: `https://your-domain.com/hook`
-3. Content type: `application/json`
-4. Secret: Same as your `WEBHOOK_SECRET`
-5. Events: `Issue comments`, `Pull request reviews`, `Pull requests`
 
 ### Usage Commands
 
@@ -108,21 +101,6 @@ gemini:
 - **🔒 Security**: Webhook signature verification
 - **⚡ Performance**: Optimized for both development and production
 
-### Project Structure
-
-```
-codeagent/
-├── cmd/server/          # Application entry point
-├── internal/
-│   ├── agent/          # Core orchestration logic
-│   ├── webhook/        # GitHub webhook handling
-│   ├── workspace/      # Git worktree management
-│   ├── code/           # AI provider implementations
-│   └── github/         # GitHub API client
-├── pkg/models/         # Shared data structures
-├── scripts/            # Utility scripts
-└── docs/              # Documentation
-```
 
 ## 🔧 Development
 

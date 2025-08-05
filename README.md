@@ -5,25 +5,17 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CI](https://github.com/qiniu/codeagent/workflows/CI/badge.svg)](https://github.com/qiniu/codeagent/actions)
 
-CodeAgent is an AI-powered code agent that automatically processes GitHub Issues and Pull Requests, generating code modification suggestions.
+CodeAgent is an AI-powered code generation system that automatically processes GitHub Issues and Pull Requests, providing intelligent code modification suggestions through webhook integration.
 
-## 📋 Table of Contents
+## ✨ Features
 
-- [Features](#features)
-- [Quick Start](#quick-start)
-- [Documentation](#documentation)
-- [Contributing](#contributing)
-- [Security](#security)
-- [License](#license)
+- 🤖 **Multi-AI Support**: Works with Claude and Gemini models
+- 🔄 **GitHub Integration**: Automatic processing of Issues and Pull Requests  
+- 🐳 **Flexible Deployment**: Docker containers or local CLI execution
+- 📁 **Smart Workspace**: Git worktree-based workspace management
+- 🔒 **Security**: Webhook signature verification and secure token handling
 
-## Features
-
-- 🤖 Support for multiple AI models (Claude, Gemini)
-- 🔄 Automatic processing of GitHub Issues and Pull Requests
-- 🐳 Docker containerized execution environment
-- 📁 Git Worktree-based workspace management
-
-## Quick Start
+## 🚀 Quick Start
 
 ### Installation
 
@@ -33,332 +25,192 @@ cd codeagent
 go mod download
 ```
 
-### Configuration
+### Basic Setup
 
-#### Method 1: Command Line Arguments
-
-```bash
-go run ./cmd/server \
-  --github-token "your-github-token" \
-  --claude-api-key "your-claude-api-key" \
-  --webhook-secret "your-webhook-secret" \
-  --port 8888
-```
-
-#### Method 2: Environment Variables
-
+1. **Set Environment Variables**
 ```bash
 export GITHUB_TOKEN="your-github-token"
-export CLAUDE_API_KEY="your-claude-api-key"
+export CLAUDE_API_KEY="your-claude-api-key"  # or GOOGLE_API_KEY for Gemini
 export WEBHOOK_SECRET="your-webhook-secret"
-export PORT=8888
-
-go run ./cmd/server
 ```
 
-#### Method 3: Configuration File (Recommended)
+2. **Start the Server**
+```bash
+# Using startup script (recommended)
+./scripts/start.sh                    # Gemini + CLI mode (default)
+./scripts/start.sh -p claude          # Claude + CLI mode  
+./scripts/start.sh -p claude -d       # Claude + Docker mode
 
-Create a configuration file `config.yaml`:
+# Or run directly
+go run ./cmd/server --port 8888
+```
+
+3. **Configure GitHub Webhook**
+   - URL: `https://your-domain.com/hook`
+   - Events: `Issue comments`, `Pull request reviews`, `Pull requests`
+   - Content type: `application/json`
+   - Secret: Same as your `WEBHOOK_SECRET`
+
+### Usage
+
+Use these commands in GitHub Issues or Pull Request comments:
+
+```bash
+# Generate code for an Issue
+/code Implement user authentication with JWT tokens
+
+# Continue development in PR
+/continue Add unit tests for the login function
+
+# Fix issues in PR
+/fix Handle edge case for empty username
+```
+
+## ⚙️ Configuration
+
+### Configuration File
+
+Create `config.yaml` for advanced configuration:
 
 ```yaml
+# Basic settings
 server:
   port: 8888
-  # webhook_secret: Set via command line arguments or environment variables
 
-github:
-  # token: Set via command line arguments or environment variables
-  webhook_url: "http://localhost:8888/hook"
+# AI Provider (claude or gemini)
+code_provider: claude
+use_docker: false  # true for Docker, false for local CLI
 
+# Workspace settings
 workspace:
-  base_dir: "./codeagent" # Supports relative paths!
+  base_dir: "./workspace"  # Supports relative paths
   cleanup_after: "24h"
 
-claude:
-  # api_key: Set via command line arguments or environment variables
-  container_image: "anthropic/claude-code:latest"
-  timeout: "30m"
-
-gemini:
-  # api_key: Set via command line arguments or environment variables
-  container_image: "google-gemini/gemini-cli:latest"
-  timeout: "30m"
-
+# Docker settings (when use_docker: true)
 docker:
   socket: "unix:///var/run/docker.sock"
   network: "bridge"
 
-# Code provider configuration
-code_provider: claude # Options: claude, gemini
-use_docker: true # Whether to use Docker, false means use local CLI
+# Provider-specific settings
+claude:
+  container_image: "anthropic/claude-code:latest"
+  timeout: "30m"
+
+gemini:
+  container_image: "google-gemini/gemini-cli:latest"
+  timeout: "30m"
 ```
 
-**Configuration Notes:**
+**Note**: Sensitive data (tokens, secrets) should be set via environment variables, not in config files.
 
-- `code_provider`: Choose code generation service
-  - `claude`: Use Anthropic Claude
-  - `gemini`: Use Google Gemini
-- `use_docker`: Choose execution method
-  - `true`: Use Docker containers (recommended for production)
-  - `false`: Use local CLI (recommended for development)
+### Configuration Options
 
-**Note**: Sensitive information (such as tokens, api_keys, webhook_secret) should be set via command line arguments or environment variables, not written in configuration files.
-
-### Relative Path Support
-
-CodeAgent now supports using relative paths in configuration files, providing more flexible configuration options:
-
-```yaml
-workspace:
-  base_dir: "./codeagent"     # Relative to configuration file directory
-  # or
-  base_dir: "../workspace"    # Relative to parent directory of configuration file
-  # or
-  base_dir: "/tmp/codeagent"  # Absolute path (unchanged)
-```
-
-Relative paths are automatically converted to absolute paths when configuration is loaded. For details, please refer to the [Relative Path Support Documentation](docs/relative-path-support.md).
+| Option | Description | Default |
+|--------|-------------|---------|
+| `code_provider` | AI provider: `claude` or `gemini` | `gemini` |
+| `use_docker` | Use Docker containers vs local CLI | `false` |
+| `workspace.base_dir` | Working directory for code generation | `./workspace` |
+| `workspace.cleanup_after` | Cleanup interval for temporary files | `24h` |
 
 ### Security Configuration
 
-#### Webhook Signature Verification
-
-To prevent malicious exploitation of webhook interfaces, CodeAgent supports GitHub Webhook signature verification:
-
-1. **Configure webhook secret**:
-
-   ```bash
-   # Method 1: Environment variables (recommended)
-   export WEBHOOK_SECRET="your-strong-secret-here"
-
-   # Method 2: Command line arguments
-   go run ./cmd/server --webhook-secret "your-strong-secret-here"
-   ```
-
-2. **GitHub Webhook Settings**:
-
-   - Add Webhook in GitHub repository settings
-   - URL: `https://your-domain.com/hook`
-   - Content type: `application/json`
-   - Secret: Enter the same value as `WEBHOOK_SECRET`
-   - Select events: `Issue comments`, `Pull request reviews`, `Pull requests`
-
-3. **Signature Verification Mechanism**:
-   - Supports SHA-256 signature verification (priority)
-   - Backward compatible with SHA-1 signature verification
-   - Uses constant-time comparison to prevent timing attacks
-   - If `webhook_secret` is not configured, signature verification is skipped (development environment only)
-
-#### Security Recommendations
-
-- Use strong passwords as webhook secrets (recommended 32+ characters)
-- Always configure webhook secrets in production environments
-- Use HTTPS to protect webhook endpoints
-- Regularly rotate API keys and webhook secrets
-- Limit GitHub Token permission scope
-
-### Local Development
-
-#### Configuration Combination Examples
-
-**1. Claude + Docker Mode (Default)**
+CodeAgent supports GitHub webhook signature verification:
 
 ```bash
-# Using environment variables
-export GITHUB_TOKEN="your-github-token"
-export CLAUDE_API_KEY="your-claude-api-key"
-export WEBHOOK_SECRET="your-webhook-secret"
-export CODE_PROVIDER=claude
-export USE_DOCKER=true
-go run ./cmd/server
-
-# Or using configuration file
-# Set in config.yaml: code_provider: claude, use_docker: true
-go run ./cmd/server --config config.yaml
+# Set a strong webhook secret (32+ characters recommended)
+export WEBHOOK_SECRET="your-strong-secret-here"
 ```
 
-**2. Claude + Local CLI Mode**
+**Security Recommendations:**
+- Always use HTTPS in production
+- Use strong webhook secrets (32+ characters)
+- Regularly rotate API keys and secrets
+- Limit GitHub token permissions to required scopes
 
-```bash
-# Using environment variables
-export GITHUB_TOKEN="your-github-token"
-export CLAUDE_API_KEY="your-claude-api-key"
-export WEBHOOK_SECRET="your-webhook-secret"
-export CODE_PROVIDER=claude
-export USE_DOCKER=false
-go run ./cmd/server
-
-# Or using configuration file
-# Set in config.yaml: code_provider: claude, use_docker: false
-go run ./cmd/server --config config.yaml
-```
-
-**3. Gemini + Docker Mode**
-
-```bash
-# Using environment variables
-export GITHUB_TOKEN="your-github-token"
-export GOOGLE_API_KEY="your-google-api-key"
-export WEBHOOK_SECRET="your-webhook-secret"
-export CODE_PROVIDER=gemini
-export USE_DOCKER=true
-go run ./cmd/server
-
-# Or using configuration file
-# Set in config.yaml: code_provider: gemini, use_docker: true
-go run ./cmd/server --config config.yaml
-```
-
-**4. Gemini + Local CLI Mode (Recommended for Development)**
-
-```bash
-# Using environment variables
-export GITHUB_TOKEN="your-github-token"
-export GOOGLE_API_KEY="your-google-api-key"
-export WEBHOOK_SECRET="your-webhook-secret"
-export CODE_PROVIDER=gemini
-export USE_DOCKER=false
-go run ./cmd/server
-
-# Or using configuration file
-# Set in config.yaml: code_provider: gemini, use_docker: false
-go run ./cmd/server --config config.yaml
-```
-
-#### Using Startup Script (Recommended)
-
-We provide a convenient startup script that supports all configuration combinations:
-
-```bash
-# Set environment variables
-export GITHUB_TOKEN="your-github-token"
-export GOOGLE_API_KEY="your-google-api-key"  # or CLAUDE_API_KEY
-export WEBHOOK_SECRET="your-webhook-secret"
-
-# Use startup script
-./scripts/start.sh                    # Gemini + Local CLI mode (default)
-./scripts/start.sh -p claude -d       # Claude + Docker mode
-./scripts/start.sh -p gemini -d       # Gemini + Docker mode
-./scripts/start.sh -p claude          # Claude + Local CLI mode
-
-# View help
-./scripts/start.sh --help
-```
-
-The startup script automatically checks environment dependencies and sets appropriate environment variables.
-
-**Notes**:
-
-- Local CLI mode requires pre-installation of Claude CLI or Gemini CLI tools
-- Gemini CLI mode uses single prompt approach, starting new process for each call, avoiding broken pipe errors
-- Gemini CLI automatically builds complete prompts including project context, Issue information, and conversation history, providing better code generation quality
-
-2. **Test Health Check**
-
-```bash
-curl http://localhost:8888/health
-```
-
-3. **Configure GitHub Webhook**
-   - URL: `http://your-domain.com/hook`
-   - Events: `Issue comments`, `Pull request reviews`
-   - Secret: Same as `webhook_secret` in configuration (for signature verification)
-   - Recommended to use HTTPS and strong passwords for security
-
-### Usage Examples
-
-1. **Trigger Code Generation in GitHub Issue**
-
-```
-/code Implement user login functionality including username/password validation and JWT token generation
-```
-
-2. **Continue Development in PR Comments**
-
-```
-/continue Add unit tests
-```
-
-3. **Fix Code Issues**
-
-```
-/fix Fix login validation logic bug
-```
-
-## Local Development
+## 🛠️ Development
 
 ### Project Structure
 
 ```
 codeagent/
-├── cmd/
-│   └── server/
-│       └── main.go              # Main program entry point
+├── cmd/server/           # Application entry point
 ├── internal/
-│   ├── webhook/
-│   │   └── handler.go           # Webhook handler
-│   ├── agent/
-│   │   └── agent.go             # Agent core logic
-│   ├── workspace/
-│   │   └── manager.go           # Workspace management
-│   ├── claude/
-│   │   └── executor.go          # Claude Code executor
-│   ├── github/
-│   │   └── client.go            # GitHub API client
-│   └── config/
-│       └── config.go            # Configuration management
-├── pkg/
-│   └── models/
-│       └── workspace.go         # Data models
-├── docs/
-│   └── xgo-agent.md             # Design documentation
-├── config.yaml                  # Configuration file
-├── go.mod                       # Go module file
-└── README.md                    # Project documentation
+│   ├── agent/           # Core orchestration logic
+│   ├── webhook/         # GitHub webhook handling
+│   ├── workspace/       # Git worktree management
+│   ├── code/           # AI provider implementations
+│   ├── github/         # GitHub API client
+│   └── config/         # Configuration management
+├── pkg/models/         # Shared data structures
+├── scripts/           # Utility scripts
+└── docs/             # Documentation
 ```
 
-3. **Build**
+### Build and Test
 
 ```bash
-# Build binary file
-go build -o bin/codeagent ./cmd/server
+# Build binary
+make build
 
-# Cross-compilation
-GOOS=linux GOARCH=amd64 go build -o bin/codeagent-linux ./cmd/server
-```
+# Run tests
+make test
 
-**Integration Testing**
+# Health check
+curl http://localhost:8888/health
 
-```bash
-# Start test server
-go run ./cmd/server --config test-config.yaml
-
-# Send test webhook
+# Test webhook (with sample data)
 curl -X POST http://localhost:8888/hook \
   -H "Content-Type: application/json" \
   -H "X-GitHub-Event: issue_comment" \
   -d @test-data/issue-comment.json
 ```
 
+### Development Modes
+
+**Local CLI Mode (Recommended for Development)**
+- Faster startup and execution
+- Requires `claude` or `gemini` CLI tools installed
+- Direct API communication
+
+**Docker Mode (Recommended for Production)**
+- Isolated execution environment
+- Complete toolkit included
+- Better security and reproducibility
+
 ### Debugging
 
-1. **Log Level**
-
 ```bash
-# Set detailed logging
+# Enable debug logging
 export LOG_LEVEL=debug
 go run ./cmd/server --config config.yaml
 ```
 
+## 📖 Advanced Usage
+
+### Supported Commands
+
+| Command | Context | Description |
+|---------|---------|-------------|
+| `/code <description>` | Issue comments | Generate initial code and create PR |
+| `/continue <instruction>` | PR comments | Continue development with custom instructions |
+| `/fix <description>` | PR comments | Fix specific issues in the code |
+
+### Workflow
+
+1. **Issue Processing**: User comments `/code` in GitHub Issue → CodeAgent creates branch and generates code → Submits Pull Request
+2. **PR Collaboration**: User comments `/continue` or `/fix` in PR → CodeAgent modifies code in existing branch → Updates Pull Request
+3. **Review Integration**: CodeAgent processes batch review comments and responds with comprehensive code updates
+
 ## 🤝 Contributing
 
-We welcome all forms of contributions! Please check the [Contributing Guide](CONTRIBUTING.md) to learn how to participate in project development.
-
-### Ways to Contribute
+We welcome contributions! Here's how to get involved:
 
 - 🐛 [Report Bugs](https://github.com/qiniu/codeagent/issues/new?template=bug_report.md)
 - 💡 [Feature Requests](https://github.com/qiniu/codeagent/issues/new?template=feature_request.md)
 - 📝 [Improve Documentation](https://github.com/qiniu/codeagent/issues/new?template=documentation.md)
 - 🔧 [Submit Code](CONTRIBUTING.md#code-contributions)
+
+Please check the [Contributing Guide](CONTRIBUTING.md) for detailed information.
 
 ## 📄 License
 

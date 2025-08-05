@@ -36,12 +36,6 @@ export WEBHOOK_SECRET="your-webhook-secret"
 
 2. **Start the Server**
 ```bash
-# Using startup script (recommended)
-./scripts/start.sh                    # Gemini + CLI mode (default)
-./scripts/start.sh -p claude          # Claude + CLI mode  
-./scripts/start.sh -p claude -d       # Claude + Docker mode
-
-# Or run directly
 go run ./cmd/server --port 8888
 ```
 

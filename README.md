@@ -46,12 +46,9 @@ export CLAUDE_API_KEY="your-claude-api-key"  # or GOOGLE_API_KEY for Gemini
 export WEBHOOK_SECRET="your-webhook-secret"
 ```
 
-2. **Run with Script** (Recommended):
+2. **Start the Server**:
 ```bash
-./scripts/start.sh                    # Gemini + CLI (default)
-./scripts/start.sh -p claude -d       # Claude + Docker
-./scripts/start.sh -p gemini -d       # Gemini + Docker
-./scripts/start.sh -p claude          # Claude + CLI
+go run ./cmd/server --port 8888
 ```
 
 3. **Verify Installation**:
@@ -202,7 +199,7 @@ make test
 1. **Local Testing**:
 ```bash
 # Start development server
-./scripts/start.sh -p claude
+go run ./cmd/server --port 8888
 
 # Test webhook endpoint
 curl -X POST http://localhost:8888/hook \

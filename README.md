@@ -56,8 +56,6 @@ Use these commands in GitHub Issues or Pull Request comments:
 # Continue development in PR
 /continue Add unit tests for the login function
 
-# Fix issues in PR
-/fix Handle edge case for empty username
 ```
 
 ## ⚙️ Configuration
@@ -80,19 +78,6 @@ workspace:
   base_dir: "./workspace"  # Supports relative paths
   cleanup_after: "24h"
 
-# Docker settings (when use_docker: true)
-docker:
-  socket: "unix:///var/run/docker.sock"
-  network: "bridge"
-
-# Provider-specific settings
-claude:
-  container_image: "anthropic/claude-code:latest"
-  timeout: "30m"
-
-gemini:
-  container_image: "google-gemini/gemini-cli:latest"
-  timeout: "30m"
 ```
 
 **Note**: Sensitive data (tokens, secrets) should be set via environment variables, not in config files.
@@ -187,12 +172,11 @@ go run ./cmd/server --config config.yaml
 |---------|---------|-------------|
 | `/code <description>` | Issue comments | Generate initial code and create PR |
 | `/continue <instruction>` | PR comments | Continue development with custom instructions |
-| `/fix <description>` | PR comments | Fix specific issues in the code |
 
 ### Workflow
 
 1. **Issue Processing**: User comments `/code` in GitHub Issue → CodeAgent creates branch and generates code → Submits Pull Request
-2. **PR Collaboration**: User comments `/continue` or `/fix` in PR → CodeAgent modifies code in existing branch → Updates Pull Request
+2. **PR Collaboration**: User comments `/continue` in PR → CodeAgent modifies code in existing branch → Updates Pull Request
 3. **Review Integration**: CodeAgent processes batch review comments and responds with comprehensive code updates
 
 ## 🤝 Contributing

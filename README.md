@@ -120,23 +120,6 @@ go run ./cmd/server \
 
 ## 🏗️ Development
 
-### Project Structure
-
-```
-codeagent/
-├── cmd/server/           # Application entry point
-├── internal/
-│   ├── agent/           # Core orchestration logic
-│   ├── webhook/         # GitHub webhook handling
-│   ├── workspace/       # Git worktree management
-│   ├── code/           # AI provider implementations
-│   ├── github/         # GitHub API client
-│   └── config/         # Configuration management
-├── pkg/models/         # Shared data structures
-├── scripts/           # Utility scripts
-└── docs/             # Documentation
-```
-
 ### Building
 
 ```bash

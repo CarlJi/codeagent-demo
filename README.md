@@ -52,10 +52,6 @@ gemini:
   container_image: "google-gemini/gemini-cli:latest" 
   timeout: "30m"
 
-# Docker 配置
-docker:
-  socket: "unix:///var/run/docker.sock"
-  network: "bridge"
 ```
 
 ### 环境变量
@@ -72,19 +68,6 @@ export WEBHOOK_SECRET="your-webhook-secret"
 
 #### 方式 1: 使用启动脚本（推荐）
 
-```bash
-# Gemini + CLI 模式（默认，开发推荐）
-./scripts/start.sh
-
-# Claude + Docker 模式（生产推荐）
-./scripts/start.sh -p claude -d
-
-# Claude + CLI 模式
-./scripts/start.sh -p claude
-
-# Gemini + Docker 模式
-./scripts/start.sh -p gemini -d
-```
 
 #### 方式 2: 直接运行
 

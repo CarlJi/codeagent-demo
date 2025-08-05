@@ -61,17 +61,6 @@ export WEBHOOK_SECRET="your-webhook-secret"
 
 ### 3. Run the Server
 
-**Option A: Using the convenient startup script**
-
-```bash
-./scripts/start.sh                    # Gemini + CLI (default)
-./scripts/start.sh -p claude -d       # Claude + Docker
-./scripts/start.sh -p gemini -d       # Gemini + Docker
-./scripts/start.sh -p claude          # Claude + CLI
-```
-
-**Option B: Direct Go execution**
-
 ```bash
 go run ./cmd/server --config config.yaml
 ```

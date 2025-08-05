@@ -110,10 +110,6 @@ gemini:
   container_image: "google-gemini/gemini-cli:latest"
   timeout: "30m"
 
-# Docker Configuration
-docker:
-  socket: "unix:///var/run/docker.sock"
-  network: "bridge"
 ```
 
 **Method 2: Environment Variables**
@@ -168,13 +164,11 @@ go run ./cmd/server \
 **In PR Comments:**
 ```
 /continue Add comprehensive unit tests
-/fix Resolve memory leak in connection pool
 ```
 
 **In PR Review Comments:**
 ```
 /continue Optimize this database query
-/fix Handle the null pointer exception
 ```
 
 ### Supported Scenarios

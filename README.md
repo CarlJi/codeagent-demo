@@ -102,10 +102,6 @@ Continue development with additional instructions:
 /continue Add comprehensive unit tests for the authentication module
 ```
 
-Fix specific issues:
-```
-/fix Handle edge case when user session expires
-```
 
 ## ⚙️ Configuration
 
@@ -136,24 +132,6 @@ workspace:
   cleanup_after: "24h"       # Auto-cleanup interval
 ```
 
-#### Docker Configuration
-```yaml
-docker:
-  socket: "unix:///var/run/docker.sock"
-  network: "bridge"
-```
-
-### Execution Modes
-
-#### Docker Mode (Production Recommended)
-- **Pros**: Isolated environment, consistent across systems
-- **Cons**: Slightly slower startup
-- **Setup**: Ensure Docker is running
-
-#### CLI Mode (Development Recommended)  
-- **Pros**: Faster execution, easier debugging
-- **Cons**: Requires local AI CLI installation
-- **Setup**: Install `claude` or `gemini` CLI tools
 
 ## 🏗️ Development
 

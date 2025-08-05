@@ -51,13 +51,6 @@ export GOOGLE_API_KEY="your-google-api-key"     # For Gemini
 ### 3. Quick Launch
 
 ```bash
-# Using the startup script (recommended)
-./scripts/start.sh                    # Gemini + CLI mode (default)
-./scripts/start.sh -p claude -d       # Claude + Docker mode
-./scripts/start.sh -p claude          # Claude + CLI mode
-./scripts/start.sh -p gemini -d       # Gemini + Docker mode
-
-# Or run directly
 go run ./cmd/server --port 8888
 ```
 

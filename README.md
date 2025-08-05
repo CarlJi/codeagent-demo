@@ -28,12 +28,7 @@ go mod download
 
 2. **Start the Server**
    ```bash
-   # Quick start with default settings
    go run ./cmd/server
-   
-   # Or use the convenient startup script
-   ./scripts/start.sh                    # Gemini + CLI mode (default)
-   ./scripts/start.sh -p claude -d       # Claude + Docker mode
    ```
 
 3. **Configure GitHub Webhook**
@@ -49,7 +44,6 @@ go mod download
    # In GitHub Issues/PRs, use these commands:
    /code Implement user authentication
    /continue Add unit tests
-   /fix Resolve validation bug
    ```
 
 ## 📋 Features

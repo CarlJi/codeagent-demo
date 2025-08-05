@@ -114,9 +114,6 @@ gemini:
   container_image: "google-gemini/gemini-cli:latest"
   timeout: "30m"
 
-docker:
-  socket: "unix:///var/run/docker.sock"
-  network: "bridge"
 ```
 
 Then run:
@@ -149,7 +146,6 @@ Trigger CodeAgent with these commands in GitHub:
 #### Pull Request Commands
 ```bash
 /continue Add comprehensive unit tests
-/fix Resolve the memory leak in worker pool
 ```
 
 ### Execution Modes

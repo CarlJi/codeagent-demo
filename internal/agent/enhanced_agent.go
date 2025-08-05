@@ -3,6 +3,8 @@ package agent
 import (
 	"context"
 	"fmt"
+	"io"
+	"strings"
 	"time"
 
 	"github.com/qiniu/codeagent/internal/code"
@@ -265,8 +267,11 @@ func (a *EnhancedAgent) executeIssueProcessingWithProgress(
 		return nil, err
 	}
 	
-	// 这里可以集成AI代码生成逻辑
-	// TODO: 实现AI代码生成，使用MCP工具进行文件操作
+	// 使用MCP工具和AI进行代码生成
+	codeResult, err := a.generateCodeWithMCP(ctx, issueCtx, mcpCtx, ws)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate code: %w", err)
+	}
 	
 	if err := pcm.UpdateTask(ctx, "generate-code", models.TaskStatusCompleted); err != nil {
 		return nil, err
@@ -280,8 +285,8 @@ func (a *EnhancedAgent) executeIssueProcessingWithProgress(
 	// 使用现有的提交逻辑
 	execResult := &models.ExecutionResult{
 		Success:      true,
-		Output:       "Code generated successfully",
-		FilesChanged: []string{}, // TODO: 从MCP工具调用中获取
+		Output:       codeResult.Output,
+		FilesChanged: codeResult.FilesChanged,
 		Duration:     time.Since(pcm.GetTracker().StartTime),
 	}
 	
@@ -320,6 +325,170 @@ func (a *EnhancedAgent) executeIssueProcessingWithProgress(
 	}
 	
 	return result, nil
+}
+
+// generateCodeWithMCP 使用MCP工具和AI生成代码
+func (a *EnhancedAgent) generateCodeWithMCP(
+	ctx context.Context,
+	issueCtx *models.IssueCommentContext,
+	mcpCtx *models.MCPContext,
+	ws *models.Workspace,
+) (*models.ExecutionResult, error) {
+	xl := xlog.NewWith(ctx)
+	
+	// 1. 初始化code session
+	codeClient, err := a.sessionManager.GetSession(ws)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get code session: %w", err)
+	}
+	
+	// 2. 使用MCP工具收集项目上下文 (简化实现)
+	xl.Infof("Collecting project context using MCP tools")
+	// TODO: 实现 ListFiles 方法
+	projectFiles := []string{} // 暂时使用空列表
+	xl.Infof("MCP ListFiles method not implemented, using empty file list")
+	
+	// 3. 分析Issue需求
+	issue := issueCtx.Issue
+	issueAnalysis := a.analyzeIssueRequirements(issue)
+	
+	// 4. 构建包含项目上下文的代码生成prompt
+	codePrompt := a.buildCodeGenerationPrompt(issue, issueAnalysis, projectFiles)
+	xl.Infof("Generated code generation prompt for Issue #%d", issue.GetNumber())
+	
+	// 5. 执行AI代码生成
+	xl.Infof("Executing AI code generation")
+	resp, err := codeClient.Prompt(codePrompt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to prompt AI for code generation: %w", err)
+	}
+	
+	output, err := io.ReadAll(resp.Out)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read AI output: %w", err)
+	}
+	
+	aiOutput := string(output)
+	xl.Infof("AI code generation completed, output length: %d", len(aiOutput))
+	
+	// 6. 使用MCP工具分析生成的文件变更 (简化实现)
+	// TODO: 实现 GetChangedFiles 方法
+	changedFiles := []string{} // 暂时使用空列表
+	xl.Infof("MCP GetChangedFiles method not implemented, using empty list")
+	
+	result := &models.ExecutionResult{
+		Success:      true,
+		Output:       aiOutput,
+		FilesChanged: changedFiles,
+		Duration:     0, // 将在上层计算
+	}
+	
+	xl.Infof("Code generation completed with %d files changed", len(changedFiles))
+	return result, nil
+}
+
+// analyzeIssueRequirements 分析Issue需求
+func (a *EnhancedAgent) analyzeIssueRequirements(issue *github.Issue) *models.IssueAnalysis {
+	title := issue.GetTitle()
+	body := issue.GetBody()
+	
+	analysis := &models.IssueAnalysis{
+		Type:        "feature", // 默认类型
+		Priority:    "medium",
+		Complexity:  "medium",
+		Keywords:    []string{},
+		Suggestions: []string{},
+	}
+	
+	titleLower := strings.ToLower(title)
+	bodyLower := strings.ToLower(body)
+	
+	// 分析Issue类型
+	if strings.Contains(titleLower, "bug") || strings.Contains(titleLower, "fix") || 
+	   strings.Contains(bodyLower, "bug") || strings.Contains(bodyLower, "error") {
+		analysis.Type = "bug"
+	} else if strings.Contains(titleLower, "test") || strings.Contains(bodyLower, "test") {
+		analysis.Type = "test"
+	} else if strings.Contains(titleLower, "refactor") || strings.Contains(bodyLower, "refactor") {
+		analysis.Type = "refactor"
+	} else if strings.Contains(titleLower, "doc") || strings.Contains(bodyLower, "documentation") {
+		analysis.Type = "documentation"
+	}
+	
+	// 分析优先级
+	if strings.Contains(titleLower, "urgent") || strings.Contains(titleLower, "critical") ||
+	   strings.Contains(bodyLower, "urgent") || strings.Contains(bodyLower, "critical") {
+		analysis.Priority = "high"
+	} else if strings.Contains(titleLower, "minor") || strings.Contains(bodyLower, "minor") {
+		analysis.Priority = "low"
+	}
+	
+	// 提取关键词
+	words := strings.Fields(titleLower + " " + bodyLower)
+	techKeywords := []string{"api", "database", "frontend", "backend", "ui", "auth", "security", "performance"}
+	for _, word := range words {
+		for _, keyword := range techKeywords {
+			if strings.Contains(word, keyword) {
+				analysis.Keywords = append(analysis.Keywords, keyword)
+			}
+		}
+	}
+	
+	return analysis
+}
+
+// buildCodeGenerationPrompt 构建代码生成的prompt
+func (a *EnhancedAgent) buildCodeGenerationPrompt(issue *github.Issue, analysis *models.IssueAnalysis, projectFiles []string) string {
+	var fileContext string
+	if len(projectFiles) > 0 {
+		fileContext = fmt.Sprintf("\n## 项目文件结构\n```\n%s\n```\n", strings.Join(projectFiles[:min(50, len(projectFiles))], "\n"))
+	}
+	
+	prompt := fmt.Sprintf(`请根据以下Issue实现相应的代码：
+
+## Issue信息
+- **标题**: %s
+- **描述**: %s
+- **类型**: %s
+- **优先级**: %s
+- **关键词**: %s
+
+%s
+
+## 实现要求
+1. **代码质量**: 遵循最佳实践，确保代码可读性和可维护性
+2. **错误处理**: 添加适当的错误处理逻辑
+3. **测试友好**: 编写易于测试的代码
+4. **文档注释**: 为重要函数和复杂逻辑添加注释
+5. **安全性**: 考虑安全相关的因素
+
+## 输出格式要求
+%s
+简要说明实现的功能和主要变更
+
+%s
+- 列出修改或新增的文件
+- 说明每个文件的主要变更
+
+请开始实现代码，确保充分理解Issue需求并提供完整的解决方案。`,
+		issue.GetTitle(),
+		issue.GetBody(),
+		analysis.Type,
+		analysis.Priority,
+		strings.Join(analysis.Keywords, ", "),
+		fileContext,
+		models.SectionSummary,
+		models.SectionChanges)
+	
+	return prompt
+}
+
+// min 辅助函数：返回两个整数中的较小值
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 // GetMCPManager 获取MCP管理器（用于外部扩展）

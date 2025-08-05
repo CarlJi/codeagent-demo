@@ -931,10 +931,130 @@ func (a *Agent) ProcessPRFromReviewWithTriggerUserAndAI(ctx context.Context, eve
 func (a *Agent) ReviewPR(ctx context.Context, pr *github.PullRequest) error {
 	log := xlog.NewWith(ctx)
 
-	log.Infof("Starting PR review for PR #%d", pr.GetNumber())
-	// TODO: 实现 PR 审查逻辑
-	log.Infof("PR review completed for PR #%d", pr.GetNumber())
+	prNumber := pr.GetNumber()
+	log.Infof("Starting PR review for PR #%d", prNumber)
+
+	// 1. 从PR分支中提取AI模型
+	branchName := pr.GetHead().GetRef()
+	aiModel := a.workspace.ExtractAIModelFromBranch(branchName)
+	if aiModel == "" {
+		aiModel = a.config.CodeProvider
+	}
+	log.Infof("Using AI model for review: %s", aiModel)
+
+	// 2. 获取或创建PR工作空间
+	ws := a.workspace.GetOrCreateWorkspaceForPRWithAI(pr, aiModel)
+	if ws == nil {
+		log.Errorf("Failed to get or create workspace for PR review")
+		return fmt.Errorf("failed to get or create workspace for PR review")
+	}
+
+	// 3. 拉取最新代码
+	if err := a.github.PullLatestChanges(ws, pr); err != nil {
+		log.Warnf("Failed to pull latest changes: %v", err)
+	}
+
+	// 4. 初始化code client
+	codeClient, err := a.sessionManager.GetSession(ws)
+	if err != nil {
+		log.Errorf("Failed to get code session for review: %v", err)
+		return fmt.Errorf("failed to get code session for review: %w", err)
+	}
+
+	// 5. 获取PR的文件变更 (简化实现)
+	// TODO: 实现 GetPRFiles 方法
+	files := []*github.CommitFile{}
+	log.Infof("GetPRFiles method not implemented, using empty file list")
+
+	// 6. 构建审查prompt
+	reviewPrompt := a.buildReviewPrompt(pr, files)
+	log.Infof("Generated review prompt for PR #%d", prNumber)
+
+	// 7. 执行AI审查
+	resp, err := a.promptWithRetry(ctx, codeClient, reviewPrompt, 3)
+	if err != nil {
+		log.Errorf("Failed to execute PR review: %v", err)
+		return fmt.Errorf("failed to execute PR review: %w", err)
+	}
+
+	output, err := io.ReadAll(resp.Out)
+	if err != nil {
+		log.Errorf("Failed to read review output: %v", err)
+		return fmt.Errorf("failed to read review output: %w", err)
+	}
+
+	reviewOutput := string(output)
+	log.Infof("PR review completed, output length: %d", len(reviewOutput))
+
+	// 8. 创建审查评论
+	reviewComment := fmt.Sprintf("## 🤖 AI 代码审查\n\n%s\n\n---\n*由 CodeAgent 自动生成的审查意见*", reviewOutput)
+	
+	if err := a.github.CreatePullRequestComment(pr, reviewComment); err != nil {
+		log.Errorf("Failed to create review comment: %v", err)
+		return fmt.Errorf("failed to create review comment: %w", err)
+	}
+
+	log.Infof("PR review completed successfully for PR #%d", prNumber)
 	return nil
+}
+
+// buildReviewPrompt 构建PR审查的prompt
+func (a *Agent) buildReviewPrompt(pr *github.PullRequest, files []*github.CommitFile) string {
+	var changedFiles []string
+	var additions, deletions int
+
+	for _, file := range files {
+		changedFiles = append(changedFiles, fmt.Sprintf("- %s (%d additions, %d deletions)", 
+			file.GetFilename(), file.GetAdditions(), file.GetDeletions()))
+		additions += file.GetAdditions()
+		deletions += file.GetDeletions()
+	}
+
+	prompt := fmt.Sprintf(`请对以下Pull Request进行代码审查：
+
+## PR信息
+- 标题：%s
+- 描述：%s
+- 作者：%s
+- 分支：%s -> %s
+- 文件变更数：%d
+- 代码行变更：+%d -%d
+
+## 变更文件列表
+%s
+
+## 审查要求
+请从以下几个方面进行审查：
+1. **代码质量**：检查代码风格、命名规范、注释完整性
+2. **功能正确性**：分析代码逻辑是否正确，是否可能存在bug
+3. **性能考虑**：评估代码的性能影响
+4. **安全性**：检查是否存在安全漏洞或风险
+5. **可维护性**：评估代码的可读性和可维护性
+6. **测试覆盖**：检查是否需要添加或更新测试
+
+## 输出格式
+### ✅ 优点
+- 列出代码的优点
+
+### ⚠️ 需要注意的问题
+- 列出发现的问题（如果有）
+
+### 💡 改进建议
+- 提供具体的改进建议（如果有）
+
+### 📝 总体评价
+给出总体评价和是否建议合并的意见。`,
+		pr.GetTitle(),
+		pr.GetBody(),
+		pr.GetUser().GetLogin(),
+		pr.GetHead().GetRef(),
+		pr.GetBase().GetRef(),
+		len(files),
+		additions,
+		deletions,
+		strings.Join(changedFiles, "\n"))
+
+	return prompt
 }
 
 // CleanupAfterPRClosed PR 关闭后清理工作区、映射、执行的code session和删除CodeAgent创建的分支

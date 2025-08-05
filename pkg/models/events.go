@@ -218,6 +218,22 @@ func parseCommand(content string) (*CommandInfo, bool) {
 	}, true
 }
 
+// IssueAnalysis Issue需求分析结果
+type IssueAnalysis struct {
+	Type        string   `json:"type"`        // bug, feature, test, refactor, documentation
+	Priority    string   `json:"priority"`    // high, medium, low
+	Complexity  string   `json:"complexity"`  // high, medium, low
+	Keywords    []string `json:"keywords"`    // 技术关键词
+	Suggestions []string `json:"suggestions"` // 实现建议
+}
+
+// HealthStatus 系统健康状态
+type HealthStatus struct {
+	Timestamp time.Time         `json:"timestamp"`
+	Status    string            `json:"status"` // healthy, unhealthy, degraded
+	Checks    map[string]string `json:"checks"` // 各组件的健康状态
+}
+
 // IsValidEventType 检查事件类型是否有效
 func IsValidEventType(eventType string) bool {
 	switch EventType(eventType) {

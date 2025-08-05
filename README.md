@@ -105,14 +105,6 @@ workspace:
 code_provider: claude  # Options: claude, gemini
 use_docker: true       # false for local CLI
 
-# Docker settings (when use_docker: true)
-claude:
-  container_image: "anthropic/claude-code:latest"
-  timeout: "30m"
-
-gemini:
-  container_image: "google-gemini/gemini-cli:latest"
-  timeout: "30m"
 
 ```
 

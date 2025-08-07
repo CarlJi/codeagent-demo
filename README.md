@@ -87,10 +87,6 @@ You can interact with CodeAgent by commenting on GitHub Issues and Pull Requests
     ```
     /code Implement user login functionality.
     ```
--   **Continue a task**:
-    ```
-    /continue Add unit tests for the login functionality.
-    ```
 -   **Fix code**:
     ```
     /fix The login validation is not working correctly.

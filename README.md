@@ -55,7 +55,6 @@
    ```
    /code Implement user authentication with JWT
    /continue Add error handling
-   /fix Fix the validation logic bug
    ```
 
 ## ⚙️ Configuration
@@ -100,9 +99,6 @@ gemini:
   container_image: "google-gemini/gemini-cli:latest"  
   timeout: "30m"
 
-docker:
-  socket: "unix:///var/run/docker.sock"
-  network: "bridge"
 ```
 
 **Security Note**: Never store sensitive tokens in configuration files. Use environment variables or command line arguments.
@@ -117,22 +113,6 @@ docker:
 | `gemini + docker` | Gemini | Docker | Production (isolated) |
 
 ## 🔧 Development
-
-### Project Structure
-```
-codeagent/
-├── cmd/server/          # Application entry point
-├── internal/
-│   ├── agent/          # Core orchestration logic
-│   ├── webhook/        # GitHub webhook handling  
-│   ├── workspace/      # Git worktree management
-│   ├── code/           # AI provider implementations
-│   ├── github/         # GitHub API client
-│   └── config/         # Configuration management
-├── pkg/models/         # Shared data structures
-├── scripts/            # Utility scripts
-└── docs/              # Documentation
-```
 
 ### Build & Test
 ```bash
@@ -189,9 +169,6 @@ Minimum required GitHub token permissions:
 ```bash
 # Continue development
 /continue Add input validation and error handling
-
-# Fix specific issues
-/fix Fix the memory leak in the connection pool
 
 # Add tests
 /continue Write comprehensive unit tests for the auth module

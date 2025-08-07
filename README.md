@@ -42,12 +42,6 @@
 
 3. **Start the server**:
    ```bash
-   # Using the convenient startup script (recommended)
-   ./scripts/start.sh                    # Gemini + CLI mode (default)
-   ./scripts/start.sh -p claude -d       # Claude + Docker mode
-   ./scripts/start.sh -p claude          # Claude + CLI mode
-   
-   # Or run directly
    go run ./cmd/server --port 8888
    ```
 
